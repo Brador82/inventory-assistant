@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Parts Queue — Inventory Assistant</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="header">
+  <button class="header-back" onclick="history.back()">←</button>
+  <div>
+    <div class="header-logo">Parts Queue</div>
+    <div class="header-sub">All parts pending order</div>
+  </div>
+</div>
+
+<div class="page">
+
+  <div style="display:flex;gap:8px;margin-bottom:16px">
+    <button class="btn btn-success" style="flex:1" onclick="generateOrder()">📋 Generate Order Form</button>
+    <a href="orders.html" class="btn btn-ghost">Past Orders</a>
+  </div>
+
+  <div id="content"><div class="loading">Loading…</div></div>
+
+</div>
+
+<script src="js/api.js"></script>
+<script>
+async function load() {
+  try {
+    const parts = await apiGet('/api/parts/pending');
+    if (!parts.length) {
+      document.getElementById('content').innerHTML = '<div class="info-msg">No parts currently pending order. 🎉</div>';
+      return;
+    }
+
+    // Group by manufacturer
+    const groups = {};
+    parts.forEach(p => {
+      const mfr = p.manufacturer || 'Unknown Manufacturer';
+      if (!groups[mfr]) groups[mfr] = [];
+      groups[mfr].push(p);
+    });
+
+    let html = `<div style="font-size:13px;color:var(--text-muted);margin-bottom:12px">${parts.length} part${parts.length !== 1 ? 's' : ''} across ${Object.keys(groups).length} manufacturer${Object.keys(groups).length !== 1 ? 's' : ''}</div>`;
+
+    Object.keys(groups).sort().forEach(mfr => {
+      html += `<div class="section-label">${mfr}</div>`;
+      groups[mfr].forEach(p => {
+        html += `
+          <div class="card" style="padding:12px">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
+              <div style="flex:1">
+                <div style="font-size:15px;font-weight:700;color:var(--accent)">${p.partNumber}</div>
+                <div style="font-size:13px;margin-top:2px">${p.partDescription || '—'}</div>
+                <div style="font-size:12px;color:var(--text-muted);margin-top:4px">Qty: ${p.quantityNeeded}</div>
+                ${p.notes ? `<div style="font-size:12px;color:var(--text-muted)">${p.notes}</div>` : ''}
+              </div>
+              <div style="text-align:right;flex-shrink:0">
+                <a href="unit.html?barcode=${encodeURIComponent(p.unit.barcode)}" style="display:inline-block;font-size:12px;font-weight:600;color:var(--accent);text-decoration:none;background:var(--surface2);padding:4px 10px;border-radius:6px">${p.unit.barcode}</a>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:4px">${p.unit.brand || ''} ${p.unit.applianceType || ''}</div>
+              </div>
+            </div>
+          </div>`;
+      });
+    });
+
+    document.getElementById('content').innerHTML = html;
+  } catch(e) {
+    document.getElementById('content').innerHTML = `<div class="error-msg">${e.message}</div>`;
+  }
+}
+
+async function generateOrder() {
+  const name = ensureEmployee();
+  try {
+    const order = await apiPost('/api/orders/generate', { generatedBy: name });
+    showToast(`✓ Order #${order.id} created`);
+    setTimeout(() => window.location = `order.html?id=${order.id}`, 1200);
+  } catch(e) {
+    showToast('⚠️ ' + e.message);
+  }
+}
+
+load();
+</script>
+</body>
+</html>

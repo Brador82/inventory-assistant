@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Order History — Inventory Assistant</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="header">
+  <button class="header-back" onclick="history.back()">←</button>
+  <div>
+    <div class="header-logo">Order History</div>
+    <div class="header-sub">All generated parts orders</div>
+  </div>
+</div>
+
+<div class="page">
+  <div id="list"><div class="loading">Loading…</div></div>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+async function load() {
+  try {
+    const orders = await apiGet('/api/orders');
+    if (!orders.length) {
+      document.getElementById('list').innerHTML = '<div class="info-msg">No orders generated yet.</div>';
+      return;
+    }
+    document.getElementById('list').innerHTML = orders.map(o => `
+      <a href="order.html?id=${o.id}" class="list-item">
+        <div class="list-item-left">
+          <div class="list-item-barcode">Order #${o.id}</div>
+          <div class="list-item-sub">${o.generatedBy} &bull; ${o.partCount} parts</div>
+        </div>
+        <div class="list-item-right">
+          <div style="font-size:12px;color:var(--text-muted)">${fmtDate(o.createdAt)}</div>
+          <div style="margin-top:4px">${statusBadge(o.status)}</div>
+        </div>
+      </a>
+    `).join('');
+  } catch(e) {
+    document.getElementById('list').innerHTML = `<div class="error-msg">${e.message}</div>`;
+  }
+}
+load();
+</script>
+</body>
+</html>

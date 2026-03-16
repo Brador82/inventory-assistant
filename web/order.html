@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Order — Inventory Assistant</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="header">
+  <button class="header-back" onclick="history.back()">←</button>
+  <div>
+    <div class="header-logo" id="pageTitle">Parts Order</div>
+    <div class="header-sub" id="pageSub"></div>
+  </div>
+  <button class="btn btn-ghost" onclick="window.print()" style="margin-left:auto;font-size:13px;padding:8px 14px">🖨️ Print</button>
+</div>
+
+<div class="page" id="page">
+  <div class="loading">Loading order…</div>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+const params = new URLSearchParams(location.search);
+const id = params.get('id');
+
+async function load() {
+  if (!id) { document.getElementById('page').innerHTML = '<div class="error-msg">No order ID specified.</div>'; return; }
+  try {
+    const order = await apiGet('/api/orders/' + id);
+    render(order);
+  } catch(e) {
+    document.getElementById('page').innerHTML = `<div class="error-msg">${e.message}</div>`;
+  }
+}
+
+function render(order) {
+  document.getElementById('pageTitle').textContent = `Order #${order.id}`;
+  document.getElementById('pageSub').textContent = `${fmtDate(order.createdAt)} · ${order.generatedBy} · ${order.parts.length} parts`;
+
+  const groups = {};
+  order.parts.forEach(p => {
+    const mfr = p.manufacturer || 'Unknown Manufacturer';
+    if (!groups[mfr]) groups[mfr] = [];
+    groups[mfr].push(p);
+  });
+
+  const unitCount = [...new Set(order.parts.map(p => p.unitId))].length;
+
+  let html = `
+    <div class="card" style="margin-bottom:16px">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center">
+        <div><div style="font-size:24px;font-weight:700;color:var(--accent)">${order.parts.length}</div><div style="font-size:11px;color:var(--text-muted)">Total Parts</div></div>
+        <div><div style="font-size:24px;font-weight:700;color:var(--warning)">${unitCount}</div><div style="font-size:11px;color:var(--text-muted)">Units</div></div>
+        <div><div style="font-size:24px;font-weight:700;color:var(--success)">${Object.keys(groups).length}</div><div style="font-size:11px;color:var(--text-muted)">Suppliers</div></div>
+      </div>
+    </div>`;
+
+  Object.keys(groups).sort().forEach(mfr => {
+    html += `
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:12px;overflow:hidden">
+        <div style="padding:10px 14px;border-bottom:1px solid var(--border);font-weight:700;font-size:14px;color:var(--accent)">🏭 ${mfr}</div>`;
+    groups[mfr].forEach(p => {
+      html += `
+        <div style="padding:10px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+          <div>
+            <div style="font-size:14px;font-weight:700">${p.partNumber}</div>
+            <div style="font-size:12px;color:var(--text-muted)">${p.partDescription || '—'}</div>
+            ${p.notes ? `<div style="font-size:11px;color:var(--text-muted);margin-top:2px">${p.notes}</div>` : ''}
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <div style="font-size:13px;font-weight:600">Qty: ${p.quantityNeeded}</div>
+            <a href="unit.html?barcode=${encodeURIComponent(p.unit?.barcode||'')}" style="font-size:11px;color:var(--accent);text-decoration:none">${p.unit?.barcode || ''}</a>
+            <div style="font-size:10px;color:var(--text-muted)">${p.unit?.brand||''} ${p.unit?.applianceType||''}</div>
+          </div>
+        </div>`;
+    });
+    html += '</div>';
+  });
+
+  document.getElementById('page').innerHTML = html;
+}
+
+load();
+</script>
+
+<style>
+@media print {
+  .header button { display: none; }
+  body { background: #fff; color: #000; }
+  .header { background: #fff; border-bottom: 2px solid #000; }
+  .header-logo { color: #000; }
+  a { color: #000; }
+}
+</style>
+</body>
+</html>

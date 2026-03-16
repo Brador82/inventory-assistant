@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inventory Assistant</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="header">
+  <span class="header-logo">📦 Inventory Assistant</span>
+</div>
+
+<div class="page">
+
+  <!-- Scan FAB -->
+  <a href="scan.html" class="fab" title="Scan Unit">&#x1F4F7;</a>
+
+  <!-- Status counts grid -->
+  <div class="section-label">Status Overview</div>
+  <div class="stat-grid" id="statGrid">
+    <div class="stat-tile"><div class="stat-tile-count">…</div><div class="stat-tile-label">Loading</div></div>
+    <div class="stat-tile"><div class="stat-tile-count">…</div><div class="stat-tile-label">Loading</div></div>
+  </div>
+
+  <!-- Parts order banner -->
+  <div class="card" id="partsCard" style="display:none">
+    <div class="card-title">Parts Queue</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+      <div>
+        <div style="font-size:28px;font-weight:700;color:var(--warning)" id="pendingCount">0</div>
+        <div style="font-size:12px;color:var(--text-muted)">parts pending order</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <a href="parts-queue.html" class="btn btn-ghost" style="font-size:13px;padding:9px 14px">View Queue</a>
+        <button class="btn btn-success" style="font-size:13px;padding:9px 14px" onclick="generateOrder()">Generate Order</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent activity -->
+  <div class="section-label">Recent Activity</div>
+  <div id="activityList"><div class="loading">Loading…</div></div>
+
+  <!-- Units by status -->
+  <div class="section-label">Browse by Status</div>
+  <div id="statusLinks"></div>
+
+</div>
+
+<script src="js/api.js"></script>
+<script>
+async function load() {
+  try {
+    const data = await apiGet('/api/dashboard');
+
+    // Stat grid — key statuses
+    const tiles = [
+      { status: 'Testing',           label: 'In Testing',          cls: '' },
+      { status: 'WaitingForParts',   label: 'Waiting for Parts',   cls: 'warn' },
+      { status: 'ReadyForFloor',     label: 'Ready for Floor',     cls: 'success' },
+      { status: 'Repairing',         label: 'Repairing',           cls: '' },
+      { status: 'OnSalesFloor',      label: 'On Sales Floor',      cls: 'success' },
+      { status: 'HeldForCustomer',   label: 'Held for Customer',   cls: '' },
+      { status: 'WaitingForDelivery',label: 'Awaiting Delivery',   cls: 'warn' },
+      { status: 'Scrap',             label: 'Scrapped',            cls: 'danger' },
+    ];
+
+    const countMap = {};
+    (data.statusCounts || []).forEach(s => countMap[s.status] = s.count);
+
+    document.getElementById('statGrid').innerHTML = tiles.map(t => `
+      <a href="units.html?status=${t.status}" class="stat-tile ${t.cls}">
+        <div class="stat-tile-count">${countMap[t.status] || 0}</div>
+        <div class="stat-tile-label">${t.label}</div>
+      </a>
+    `).join('');
+
+    // Parts banner
+    if (data.pendingParts > 0) {
+      document.getElementById('partsCard').style.display = 'block';
+      document.getElementById('pendingCount').textContent = data.pendingParts;
+    }
+
+    // Status links
+    const linkStatuses = ['Intake','Diagnose','Sold','Delivered','Return','Scrap'];
+    document.getElementById('statusLinks').innerHTML = linkStatuses.map(s => `
+      <a href="units.html?status=${s}" class="list-item">
+        <div class="list-item-left">
+          <div class="list-item-barcode">${s}</div>
+          <div class="list-item-sub">${countMap[s] || 0} units</div>
+        </div>
+        <div style="color:var(--text-muted)">›</div>
+      </a>
+    `).join('');
+
+    // Recent activity
+    const acts = data.recentActivity || [];
+    if (!acts.length) {
+      document.getElementById('activityList').innerHTML = '<div class="info-msg">No activity yet.</div>';
+    } else {
+      document.getElementById('activityList').innerHTML = acts.map(a => `
+        <div class="history-item">
+          <div class="history-dot"></div>
+          <div class="history-body">
+            <div class="history-status">
+              <a href="unit.html?barcode=${encodeURIComponent(a.barcode)}" style="color:var(--accent);text-decoration:none">${a.barcode}</a>
+              &nbsp;→&nbsp;${statusBadge(a.statusTo)}
+            </div>
+            <div class="history-meta">${a.brand || ''} ${a.applianceType || ''} &bull; ${a.changedBy} &bull; ${fmtDate(a.changedAt)}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+  } catch(e) {
+    document.getElementById('statGrid').innerHTML = `<div class="error-msg" style="grid-column:1/-1">Could not load dashboard: ${e.message}</div>`;
+  }
+}
+
+async function generateOrder() {
+  const name = ensureEmployee();
+  try {
+    const order = await apiPost('/api/orders/generate', { generatedBy: name });
+    showToast(`Order #${order.id} generated — ${order.parts?.length || 0} parts`);
+    setTimeout(() => window.location = `order.html?id=${order.id}`, 1200);
+  } catch(e) {
+    showToast('⚠️ ' + e.message);
+  }
+}
+
+load();
+</script>
+</body>
+</html>

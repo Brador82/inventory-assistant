@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unit — Inventory Assistant</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="header">
+  <button class="header-back" onclick="history.back()">←</button>
+  <div>
+    <div class="header-logo" id="unitTitle">Loading…</div>
+    <div class="header-sub" id="unitSub"></div>
+  </div>
+</div>
+
+<div class="page" id="page" style="display:none">
+
+  <!-- ===== STATUS — most prominent ===== -->
+  <div class="card" style="text-align:center;padding:20px 16px">
+    <div class="card-title">Current Status</div>
+    <div id="statusBadgeDisplay" style="margin-bottom:16px"></div>
+    <select id="statusSelect" class="field" style="font-size:16px;font-weight:600;text-align:center;margin-bottom:0"></select>
+  </div>
+
+  <!-- ===== Held For (shows when HeldForCustomer) ===== -->
+  <div class="card" id="heldCard" style="display:none">
+    <div class="card-title">Held For</div>
+    <div class="field" style="margin-bottom:0">
+      <input type="text" id="heldFor" placeholder="Customer name or ticket #">
+    </div>
+  </div>
+
+  <!-- ===== Notes ===== -->
+  <div class="card">
+    <div class="card-title">Technician Notes</div>
+    <div class="field" style="margin-bottom:0">
+      <textarea id="notes" placeholder="Add notes…" rows="3"></textarea>
+    </div>
+  </div>
+
+  <!-- ===== Save ===== -->
+  <button class="btn btn-primary btn-full" onclick="saveUnit()" id="saveBtn">Save Changes</button>
+
+  <!-- ===== Appliance details ===== -->
+  <div class="section-label">Appliance Details</div>
+  <div class="card">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="field" style="margin-bottom:0">
+        <label>Type</label>
+        <select id="applianceType">
+          <option value="">Select…</option>
+          <option>Washer</option>
+          <option>Dryer</option>
+          <option>Refrigerator</option>
+          <option>Dishwasher</option>
+          <option>Range / Oven</option>
+          <option>Microwave</option>
+          <option>Freezer</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label>Brand</label>
+        <input type="text" id="brand" placeholder="Whirlpool, GE…">
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
+      <div class="field" style="margin-bottom:0">
+        <label>Model #</label>
+        <input type="text" id="model" placeholder="Model number">
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label>Serial #</label>
+        <input type="text" id="serialNumber" placeholder="Serial number">
+      </div>
+    </div>
+    <div class="field" style="margin-top:10px;margin-bottom:0">
+      <label>Location</label>
+      <input type="text" id="location" placeholder="Aisle, bay, or customer address">
+    </div>
+  </div>
+  <button class="btn btn-ghost btn-full" onclick="saveDetails()" style="margin-top:-4px">Update Details</button>
+
+  <!-- ===== Parts ===== -->
+  <div class="section-label">Parts Needed</div>
+  <div id="partsList"><div class="loading">Loading parts…</div></div>
+  <a href="#" onclick="openAddPart()" class="btn btn-ghost btn-full" style="margin-top:4px">+ Add Part</a>
+
+  <!-- Add Part inline form -->
+  <div class="card" id="addPartForm" style="display:none;margin-top:8px">
+    <div class="card-title">Log Part Need</div>
+    <div class="field"><label>Part Number *</label><input type="text" id="newPartNumber" placeholder="e.g. W10712395"></div>
+    <div class="field"><label>Description</label><input type="text" id="newPartDesc" placeholder="Pump assembly, door latch…"></div>
+    <div class="field"><label>Manufacturer</label><input type="text" id="newPartMfr" placeholder="Whirlpool, GE, LG…"></div>
+    <div class="field"><label>Quantity</label><input type="number" id="newPartQty" value="1" min="1"></div>
+    <div class="field"><label>Notes</label><input type="text" id="newPartNotes" placeholder="Optional notes"></div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary" style="flex:1" onclick="addPart()">Add Part</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('addPartForm').style.display='none'">Cancel</button>
+    </div>
+  </div>
+
+  <!-- ===== History ===== -->
+  <div class="section-label">History</div>
+  <div class="card" id="historyList"><div class="loading">Loading…</div></div>
+
+</div>
+
+<div class="page" id="newUnitPage" style="display:none">
+  <div class="card" style="text-align:center;padding:24px">
+    <div style="font-size:40px;margin-bottom:8px">📋</div>
+    <div style="font-size:18px;font-weight:600;margin-bottom:4px">New Unit</div>
+    <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px" id="newBarcodeLbl"></div>
+    <div class="field" style="text-align:left"><label>Type</label>
+      <select id="newType"><option value="">Select…</option><option>Washer</option><option>Dryer</option><option>Refrigerator</option><option>Dishwasher</option><option>Range / Oven</option><option>Microwave</option><option>Freezer</option><option>Other</option></select>
+    </div>
+    <div class="field" style="text-align:left"><label>Brand</label><input type="text" id="newBrand" placeholder="Whirlpool, GE…"></div>
+    <div class="field" style="text-align:left"><label>Model #</label><input type="text" id="newModel"></div>
+    <div class="field" style="text-align:left"><label>Serial # (optional)</label><input type="text" id="newSerial"></div>
+    <button class="btn btn-primary btn-full" onclick="createUnit()">Create Unit Record</button>
+  </div>
+</div>
+
+<div id="errorPage" style="display:none" class="page">
+  <div class="error-msg" id="errorMsg"></div>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+const params = new URLSearchParams(location.search);
+const barcode = params.get('barcode') || '';
+let unitData = null;
+
+async function init() {
+  if (!barcode) { showError('No barcode provided.'); return; }
+  document.getElementById('unitTitle').textContent = barcode;
+
+  // Populate status dropdown
+  document.getElementById('statusSelect').innerHTML = statusOptions('Intake');
+
+  try {
+    unitData = await apiGet('/api/units/' + encodeURIComponent(barcode));
+    populate(unitData);
+    document.getElementById('page').style.display = '';
+    document.getElementById('newUnitPage').style.display = 'none';
+    loadParts();
+    loadHistory();
+  } catch(e) {
+    if (e.message.includes('404')) {
+      // New unit
+      document.getElementById('newUnitPage').style.display = '';
+      document.getElementById('newBarcodeLbl').textContent = 'Barcode: ' + barcode;
+    } else {
+      showError('Error: ' + e.message);
+    }
+  }
+}
+
+function populate(u) {
+  document.getElementById('unitTitle').textContent = u.barcode;
+  document.getElementById('unitSub').textContent = [u.brand, u.applianceType, u.model].filter(Boolean).join(' · ');
+  document.getElementById('statusBadgeDisplay').innerHTML = statusBadge(u.status);
+  document.getElementById('statusSelect').innerHTML = statusOptions(u.status);
+  document.getElementById('notes').value = u.notes || '';
+  document.getElementById('heldFor').value = u.heldFor || '';
+  document.getElementById('applianceType').value = u.applianceType || '';
+  document.getElementById('brand').value = u.brand || '';
+  document.getElementById('model').value = u.model || '';
+  document.getElementById('serialNumber').value = u.serialNumber || '';
+  document.getElementById('location').value = u.location || '';
+  toggleHeldFor(u.status);
+
+  document.getElementById('statusSelect').addEventListener('change', () => {
+    document.getElementById('statusBadgeDisplay').innerHTML = statusBadge(document.getElementById('statusSelect').value);
+    toggleHeldFor(document.getElementById('statusSelect').value);
+  });
+}
+
+function toggleHeldFor(status) {
+  document.getElementById('heldCard').style.display = status === 'HeldForCustomer' ? '' : 'none';
+}
+
+async function saveUnit() {
+  const emp = ensureEmployee();
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    const updated = await apiPut('/api/units/' + encodeURIComponent(barcode), {
+      status: document.getElementById('statusSelect').value,
+      notes: document.getElementById('notes').value,
+      heldFor: document.getElementById('heldFor').value,
+      changedBy: emp
+    });
+    unitData = updated;
+    populate(updated);
+    loadHistory();
+    showToast('✓ Status saved');
+  } catch(e) {
+    showToast('⚠️ ' + e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Save Changes';
+  }
+}
+
+async function saveDetails() {
+  try {
+    const updated = await apiPut('/api/units/' + encodeURIComponent(barcode), {
+      applianceType: document.getElementById('applianceType').value,
+      brand: document.getElementById('brand').value,
+      model: document.getElementById('model').value,
+      serialNumber: document.getElementById('serialNumber').value,
+      location: document.getElementById('location').value,
+    });
+    document.getElementById('unitSub').textContent = [updated.brand, updated.applianceType, updated.model].filter(Boolean).join(' · ');
+    showToast('✓ Details saved');
+  } catch(e) {
+    showToast('⚠️ ' + e.message);
+  }
+}
+
+async function loadParts() {
+  try {
+    const parts = await apiGet('/api/units/' + encodeURIComponent(barcode) + '/parts');
+    if (!parts.length) {
+      document.getElementById('partsList').innerHTML = '<div class="info-msg">No parts logged.</div>';
+      return;
+    }
+    document.getElementById('partsList').innerHTML = parts.map(p => `
+      <div class="part-item">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div>
+            <div class="part-number">${p.partNumber}</div>
+            <div class="part-desc">${p.partDescription || ''}</div>
+            <div class="part-mfr">${p.manufacturer ? '🏭 ' + p.manufacturer : ''} &nbsp; ${statusBadge(p.status)}</div>
+            ${p.notes ? `<div class="part-mfr" style="margin-top:4px">${p.notes}</div>` : ''}
+            ${p.expectedArrival ? `<div class="part-mfr">ETA: ${fmtDate(p.expectedArrival)}</div>` : ''}
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;margin-left:8px">
+            ${p.status === 'Ordered' ? `<button class="btn btn-success" style="font-size:11px;padding:5px 10px" onclick="markReceived(${p.id})">Received</button>` : ''}
+            <button class="btn btn-danger" style="font-size:11px;padding:5px 10px" onclick="removePart(${p.id})">Remove</button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  } catch(e) {
+    document.getElementById('partsList').innerHTML = `<div class="error-msg">${e.message}</div>`;
+  }
+}
+
+async function loadHistory() {
+  try {
+    const history = await apiGet('/api/units/' + encodeURIComponent(barcode) + '/history');
+    if (!history.length) {
+      document.getElementById('historyList').innerHTML = '<div class="info-msg" style="padding:0">No history yet.</div>';
+      return;
+    }
+    document.getElementById('historyList').innerHTML = history.map(h => `
+      <div class="history-item">
+        <div class="history-dot"></div>
+        <div class="history-body">
+          <div class="history-status">${statusBadge(h.statusFrom)} → ${statusBadge(h.statusTo)}</div>
+          <div class="history-meta">${h.changedBy} &bull; ${fmtDate(h.changedAt)}</div>
+          ${h.notes ? `<div class="history-meta" style="margin-top:3px">${h.notes}</div>` : ''}
+        </div>
+      </div>
+    `).join('');
+  } catch(e) {
+    document.getElementById('historyList').innerHTML = `<div class="error-msg">${e.message}</div>`;
+  }
+}
+
+function openAddPart() {
+  event.preventDefault();
+  document.getElementById('addPartForm').style.display = '';
+}
+
+async function addPart() {
+  const num = document.getElementById('newPartNumber').value.trim();
+  if (!num) { showToast('Part number required'); return; }
+  try {
+    await apiPost('/api/units/' + encodeURIComponent(barcode) + '/parts', {
+      partNumber: num,
+      partDescription: document.getElementById('newPartDesc').value,
+      manufacturer: document.getElementById('newPartMfr').value,
+      quantityNeeded: parseInt(document.getElementById('newPartQty').value) || 1,
+      notes: document.getElementById('newPartNotes').value
+    });
+    document.getElementById('addPartForm').style.display = 'none';
+    document.getElementById('newPartNumber').value = '';
+    document.getElementById('newPartDesc').value = '';
+    document.getElementById('newPartMfr').value = '';
+    document.getElementById('newPartNotes').value = '';
+    showToast('✓ Part added to queue');
+    loadParts();
+  } catch(e) {
+    showToast('⚠️ ' + e.message);
+  }
+}
+
+async function markReceived(id) {
+  try {
+    await apiPut('/api/parts/' + id, { status: 'Received' });
+    showToast('✓ Part marked received');
+    loadParts();
+  } catch(e) { showToast('⚠️ ' + e.message); }
+}
+
+async function removePart(id) {
+  if (!confirm('Remove this part?')) return;
+  try {
+    await apiDelete('/api/parts/' + id);
+    showToast('Part removed');
+    loadParts();
+  } catch(e) { showToast('⚠️ ' + e.message); }
+}
+
+async function createUnit() {
+  const type = document.getElementById('newType').value;
+  if (!type) { showToast('Select appliance type'); return; }
+  try {
+    await apiPost('/api/units', {
+      barcode: barcode,
+      applianceType: type,
+      brand: document.getElementById('newBrand').value,
+      model: document.getElementById('newModel').value,
+      serialNumber: document.getElementById('newSerial').value,
+      status: 'Intake'
+    });
+    location.reload();
+  } catch(e) {
+    showToast('⚠️ ' + e.message);
+  }
+}
+
+function showError(msg) {
+  document.getElementById('errorPage').style.display = '';
+  document.getElementById('errorMsg').textContent = msg;
+}
+
+init();
+</script>
+</body>
+</html>

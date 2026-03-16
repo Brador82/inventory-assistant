@@ -1,0 +1,265 @@
+/* =============================================
+   Inventory Assistant — Global Styles
+   ============================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --bg: #0f0f17;
+  --surface: #1a1a2e;
+  --surface2: #22223a;
+  --border: #2e2e4e;
+  --accent: #6c63ff;
+  --accent2: #ff6b6b;
+  --success: #43e97b;
+  --warning: #f7971e;
+  --text: #e8e8f0;
+  --text-muted: #8888aa;
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding-bottom: 40px;
+}
+
+/* ---- Header ---- */
+.header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.header-logo { font-size: 20px; font-weight: 700; color: var(--accent); letter-spacing: -0.5px; }
+.header-sub { font-size: 13px; color: var(--text-muted); }
+.header-back {
+  background: none; border: none; color: var(--accent);
+  font-size: 20px; cursor: pointer; padding: 4px 8px;
+  border-radius: var(--radius-sm);
+}
+.header-back:hover { background: var(--surface2); }
+
+/* ---- Page container ---- */
+.page { padding: 16px; max-width: 600px; margin: 0 auto; }
+
+/* ---- Cards ---- */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.card-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+/* ---- Status badge ---- */
+.status-badge {
+  display: inline-block;
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.status-Intake         { background: #223; color: #99f; border: 1px solid #446; }
+.status-Testing        { background: #1e2a1e; color: #6f9; border: 1px solid #3a5a3a; }
+.status-Diagnose       { background: #2a1a1a; color: #f96; border: 1px solid #5a3a3a; }
+.status-WaitingForParts{ background: #2a2200; color: #fc3; border: 1px solid #554400; }
+.status-Repairing      { background: #1a1f2a; color: #6cf; border: 1px solid #2a3a5a; }
+.status-ReadyForFloor  { background: #1a2a1a; color: #4f9; border: 1px solid #3a5a3a; }
+.status-OnSalesFloor   { background: #1e2a1e; color: #0f9; border: 1px solid #2a5a3a; }
+.status-HeldForCustomer{ background: #2a1a2a; color: #f9c; border: 1px solid #5a3a5a; }
+.status-Sold           { background: #1a2a2a; color: #0ff; border: 1px solid #2a5a5a; }
+.status-WaitingForDelivery { background: #2a2010; color: #fb5; border: 1px solid #5a4a20; }
+.status-Delivered      { background: #122a22; color: #4e9; border: 1px solid #2a5a4a; }
+.status-Return         { background: #2a1818; color: #f77; border: 1px solid #5a2a2a; }
+.status-Scrap          { background: #222; color: #888; border: 1px solid #444; }
+
+/* ---- Buttons ---- */
+.btn {
+  display: inline-block;
+  padding: 12px 20px;
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  text-decoration: none;
+  text-align: center;
+  transition: opacity 0.15s, transform 0.1s;
+}
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-success { background: var(--success); color: #000; }
+.btn-danger  { background: var(--accent2); color: #fff; }
+.btn-ghost   { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+.btn-full    { display: block; width: 100%; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ---- Form fields ---- */
+.field { margin-bottom: 14px; }
+.field label { display: block; font-size: 12px; font-weight: 500; color: var(--text-muted); margin-bottom: 6px; }
+.field input, .field select, .field textarea {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  border-color: var(--accent);
+}
+.field textarea { resize: vertical; min-height: 80px; }
+.field select option { background: var(--surface); }
+
+/* ---- Dashboard stat tiles ---- */
+.stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.stat-tile {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 12px;
+  text-decoration: none;
+  display: block;
+  transition: border-color 0.15s;
+}
+.stat-tile:hover { border-color: var(--accent); }
+.stat-tile-count { font-size: 32px; font-weight: 700; color: var(--accent); line-height: 1; }
+.stat-tile-label { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+.stat-tile.warn .stat-tile-count { color: var(--warning); }
+.stat-tile.success .stat-tile-count { color: var(--success); }
+.stat-tile.danger .stat-tile-count { color: var(--accent2); }
+
+/* ---- Lists ---- */
+.list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-bottom: 8px;
+  text-decoration: none;
+  color: var(--text);
+  transition: border-color 0.15s;
+}
+.list-item:hover { border-color: var(--accent); }
+.list-item-left { flex: 1; }
+.list-item-barcode { font-size: 15px; font-weight: 600; }
+.list-item-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.list-item-right { text-align: right; flex-shrink: 0; margin-left: 10px; }
+
+/* ---- Part item ---- */
+.part-item {
+  padding: 10px 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-bottom: 8px;
+}
+.part-number { font-size: 14px; font-weight: 600; color: var(--accent); }
+.part-desc { font-size: 12px; color: var(--text-muted); }
+.part-mfr { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+/* ---- History ---- */
+.history-item {
+  display: flex;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.history-item:last-child { border-bottom: none; }
+.history-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex-shrink: 0; margin-top: 5px; }
+.history-body { flex: 1; }
+.history-status { font-size: 13px; font-weight: 600; }
+.history-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+/* ---- Scan ---- */
+#reader { border-radius: var(--radius) !important; overflow: hidden; }
+#reader video { border-radius: var(--radius) !important; }
+
+/* ---- Loading / error ---- */
+.loading { text-align: center; color: var(--text-muted); padding: 40px 20px; font-size: 14px; }
+.error-msg { background: #2a1818; border: 1px solid #5a2a2a; color: #f77; padding: 12px; border-radius: var(--radius-sm); font-size: 13px; }
+.info-msg  { background: #1a1a2a; border: 1px solid var(--border); color: var(--text-muted); padding: 12px; border-radius: var(--radius-sm); font-size: 13px; }
+
+/* ---- FAB ---- */
+.fab {
+  position: fixed;
+  bottom: 24px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-size: 26px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(108,99,255,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.fab:active { transform: scale(0.93); }
+
+/* ---- Toast ---- */
+.toast {
+  position: fixed;
+  bottom: 90px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  color: var(--text);
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  z-index: 999;
+  opacity: 0;
+  transition: opacity 0.25s;
+}
+.toast.show { opacity: 1; }
+
+/* ---- Section divider ---- */
+.section-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 16px 0 8px;
+}

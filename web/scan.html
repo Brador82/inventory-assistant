@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scan — Inventory Assistant</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+</head>
+<body>
+
+<div class="header">
+  <button class="header-back" onclick="history.back()">←</button>
+  <div>
+    <div class="header-logo">Scan Unit</div>
+    <div class="header-sub">Point camera at barcode or QR code</div>
+  </div>
+</div>
+
+<div class="page">
+  <div class="card" style="padding:0;overflow:hidden">
+    <div id="reader"></div>
+  </div>
+
+  <div class="card" id="manualCard">
+    <div class="card-title">Manual Entry</div>
+    <div class="field">
+      <label>Barcode / ID</label>
+      <input type="text" id="manualBarcode" placeholder="Type or paste barcode" autocomplete="off">
+    </div>
+    <button class="btn btn-primary btn-full" onclick="goToUnit()">Look Up Unit</button>
+  </div>
+
+  <div id="scanResult" style="display:none" class="card">
+    <div class="card-title">Detected</div>
+    <div id="scanResultText" style="font-size:20px;font-weight:700;color:var(--accent);word-break:break-all"></div>
+    <div style="margin-top:12px;display:flex;gap:8px">
+      <button class="btn btn-primary" style="flex:1" onclick="confirmScan()">Open Unit →</button>
+      <button class="btn btn-ghost" onclick="resumeScan()">Rescan</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+let scannedValue = null;
+let scanner = null;
+
+function startScanner() {
+  scanner = new Html5QrcodeScanner('reader', {
+    fps: 10,
+    qrbox: { width: 280, height: 180 },
+    supportedScanTypes: [
+      Html5QrcodeScanType.SCAN_TYPE_CAMERA
+    ],
+    formatsToSupport: [
+      Html5QrcodeSupportedFormats.QR_CODE,
+      Html5QrcodeSupportedFormats.CODE_128,
+      Html5QrcodeSupportedFormats.CODE_39,
+      Html5QrcodeSupportedFormats.UPC_A,
+      Html5QrcodeSupportedFormats.UPC_E,
+      Html5QrcodeSupportedFormats.EAN_13,
+      Html5QrcodeSupportedFormats.EAN_8,
+    ]
+  }, false);
+
+  scanner.render(onScanSuccess, onScanError);
+}
+
+function onScanSuccess(decodedText) {
+  scannedValue = decodedText.trim();
+  scanner.clear().catch(() => {});
+  document.getElementById('scanResultText').textContent = scannedValue;
+  document.getElementById('scanResult').style.display = 'block';
+  document.getElementById('manualBarcode').value = scannedValue;
+}
+
+function onScanError() { /* suppress continuous errors */ }
+
+function confirmScan() {
+  if (scannedValue) {
+    window.location = 'unit.html?barcode=' + encodeURIComponent(scannedValue);
+  }
+}
+
+function resumeScan() {
+  scannedValue = null;
+  document.getElementById('scanResult').style.display = 'none';
+  startScanner();
+}
+
+function goToUnit() {
+  const val = document.getElementById('manualBarcode').value.trim();
+  if (!val) { showToast('Enter a barcode'); return; }
+  window.location = 'unit.html?barcode=' + encodeURIComponent(val);
+}
+
+startScanner();
+</script>
+</body>
+</html>
